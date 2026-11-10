@@ -1,0 +1,40 @@
+<section class="hero">
+  <div class="panel form-panel">
+    <app-submit-form />
+  </div>
+
+  <aside class="panel meter-panel">
+    @if (stream.meter(); as meter) {
+      <app-chaos-meter [level]="meter.level" [mood]="meter.mood" />
+      <p class="stats">{{ meter.totalHype }} hype across {{ meter.things }} un-bored things</p>
+    } @else {
+      <p class="stats">Warming up the chaos reactor…</p>
+    }
+    <p class="presence" [class.offline]="!stream.connected()">
+      <span class="dot"></span>
+      @if (stream.connected()) {
+        {{ stream.online() }} {{ stream.online() === 1 ? 'chaos agent' : 'chaos agents' }} online
+      } @else {
+        Reconnecting to the mayhem…
+      }
+    </p>
+  </aside>
+</section>
+
+<section class="board" aria-live="polite">
+  <h2>The Leaderboard of No Longer Boring</h2>
+  <p class="hint">Hype fades over time. Keep the energy up or watch things sink. 🎲 re-rolls the twist.</p>
+
+  @for (thing of stream.ranked(); track thing.id; let i = $index) {
+    <app-thing-card
+      [thing]="thing"
+      [rank]="i"
+      [maxHype]="stream.maxHype()"
+      [fresh]="stream.lastChanged() === thing.id"
+      (hype)="hype($event)"
+      (reroll)="reroll($event)"
+    />
+  } @empty {
+    <p class="empty">Nothing here yet. That's… the most boring thing we've ever seen. Fix it ↑</p>
+  }
+</section>

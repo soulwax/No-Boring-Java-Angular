@@ -1,0 +1,73 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1.5rem 0 2rem;
+}
+
+.logo {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  color: inherit;
+  text-decoration: none;
+  font: 800 clamp(1.5rem, 4vw, 2.2rem)/1 var(--display);
+
+  .strike {
+    opacity: 0.4;
+    text-decoration: line-through;
+    text-decoration-thickness: 4px;
+    text-decoration-color: var(--hot);
+  }
+
+  .opposite {
+    background: linear-gradient(90deg, var(--cool), var(--hot), var(--nuclear), var(--cool));
+    background-size: 300% 100%;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 6s linear infinite;
+  }
+}
+
+nav {
+  display: flex;
+  gap: 0.5rem;
+
+  a {
+    padding: 0.5rem 0.9rem;
+    border-radius: 99px;
+    color: inherit;
+    text-decoration: none;
+    font-weight: 700;
+    border: 2px solid transparent;
+
+    &:hover { border-color: var(--border); }
+    &.active { background: var(--ink); color: var(--bg); }
+  }
+}
+
+main {
+  flex: 1;
+}
+
+footer {
+  padding: 3rem 0 2rem;
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.5;
+}
+
+@keyframes shimmer {
+  to { background-position: 300% 0; }
+}

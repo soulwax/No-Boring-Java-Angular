@@ -1,0 +1,16 @@
+<header>
+  <a routerLink="/" class="logo">
+    <span class="strike">Boring</span>
+    <span class="opposite">Opposite of Boring</span>
+  </a>
+  <nav>
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Board</a>
+    <a routerLink="/how-it-works" routerLinkActive="active">How it works</a>
+  </nav>
+</header>
+
+<main>
+  <router-outlet />
+</main>
+
+<footer>Angular 22 · Spring Boot 4 · zero boredom tolerated</footer>

@@ -1,0 +1,123 @@
+:host {
+  display: grid;
+  grid-template-columns: 3rem 1fr auto;
+  gap: 1rem;
+  align-items: start;
+  padding: 1.1rem 1.25rem;
+  border-radius: 1.25rem;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  box-shadow: 6px 6px 0 var(--shadow);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+
+  &:hover {
+    transform: translate(-2px, -2px) rotate(-0.4deg);
+    box-shadow: 9px 9px 0 var(--shadow);
+  }
+}
+
+:host(.fresh) {
+  animation: flash 900ms ease-out;
+}
+
+.rank {
+  font: 800 1.6rem/1 var(--display);
+  text-align: center;
+  padding-top: 0.2rem;
+}
+
+.original {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  text-decoration: line-through;
+  text-decoration-color: var(--hot);
+
+  span { text-decoration: none; font-style: italic; }
+}
+
+.twist {
+  margin: 0.35rem 0;
+  font: 700 1.15rem/1.35 var(--display);
+}
+
+.twist[data-reroll] {
+  animation: twist-in 500ms cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.meta {
+  margin: 0;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.hype-bar {
+  margin-top: 0.6rem;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    width: var(--hype-pct, 0%);
+    background: linear-gradient(90deg, var(--cool), var(--hot), var(--nuclear));
+    transition: width 500ms ease;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+button {
+  position: relative;
+  border: 2px solid var(--border);
+  border-radius: 0.9rem;
+  background: var(--surface-2);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+  padding: 0.45rem 0.8rem;
+  transition: transform 120ms ease;
+
+  &:hover { transform: scale(1.08) rotate(-3deg); }
+  &:active { transform: scale(0.92); }
+}
+
+.hype {
+  background: var(--hot);
+  color: #fff;
+  min-width: 4.5rem;
+}
+
+.particle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+  animation: burst 800ms ease-out forwards;
+}
+
+@keyframes burst {
+  from { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
+  to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.3); opacity: 0; }
+}
+
+@keyframes flash {
+  0% { border-color: var(--hot); box-shadow: 0 0 0 6px color-mix(in srgb, var(--hot) 40%, transparent); }
+  100% { border-color: var(--border); }
+}
+
+@keyframes twist-in {
+  from { transform: rotateX(90deg); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (max-width: 560px) {
+  :host { grid-template-columns: 2.2rem 1fr; }
+  .actions { grid-column: 2; flex-direction: row; }
+}

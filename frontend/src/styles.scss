@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Inter:wght@400;600;700&display=swap');
+
+:root {
+  --display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --body: 'Inter', system-ui, sans-serif;
+
+  --bg: #fff8ec;
+  --ink: #17121f;
+  --surface: #ffffff;
+  --surface-2: #f3ead9;
+  --border: #17121f;
+  --shadow: #17121f;
+
+  --cool: #19c37d;
+  --hot: #ff4f8b;
+  --nuclear: #ff8a00;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #120d1c;
+    --ink: #f6f0ff;
+    --surface: #1d1630;
+    --surface-2: #2a2142;
+    --border: #3d3060;
+    --shadow: #ff4f8b55;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  background:
+    radial-gradient(circle at 10% -10%, color-mix(in srgb, var(--hot) 22%, transparent), transparent 40%),
+    radial-gradient(circle at 110% 10%, color-mix(in srgb, var(--cool) 18%, transparent), transparent 40%),
+    var(--bg);
+  background-attachment: fixed;
+  color: var(--ink);
+  font: 400 1rem/1.5 var(--body);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
