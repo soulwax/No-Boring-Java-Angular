@@ -19,3 +19,11 @@ GEMINI.md
 mcp.json
 llms.txt
 llms-full.txt
+
+### Terraform ###
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+*.auto.tfvars

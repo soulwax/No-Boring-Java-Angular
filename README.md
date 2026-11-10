@@ -56,6 +56,22 @@ Open <http://localhost:4200> in **two browser windows** side by side and watch t
 Extras: H2 console at <http://localhost:8080/h2-console> (JDBC URL `jdbc:h2:mem:chaos`, user `sa`),
 health at <http://localhost:8080/actuator/health>.
 
+### Or with Docker
+
+```sh
+docker compose up --build --wait     # then open http://localhost:8080
+```
+
+The production images, as CI builds them:
+
+| Image | Built from | Notes |
+|---|---|---|
+| `ghcr.io/soulwax/no-boring-backend` | `backend/Dockerfile` | Maven build, Spring Boot layers extracted for cache-friendly pulls, JRE on Alpine, UID 10001, liveness health check |
+| `ghcr.io/soulwax/no-boring-frontend` | `frontend/Dockerfile` | Angular build served by unprivileged nginx, which proxies `/api` and `/actuator` (SSE unbuffered) to `BACKEND_URL` |
+
+Only nginx is published in `compose.yaml`; the backend runs read-only on the internal network, as it does
+behind Vercel's routing. Set `PORT` to publish elsewhere, or `TAG` to run images pulled from GHCR.
+
 ## Tests
 
 ```sh
@@ -133,6 +149,38 @@ vercel deploy --prod
 
 Containers scale to zero and may run as several instances, so the in-memory H2 data, trophies and the
 SSE room reset on cold starts. Good enough for a demo; see the ideas below for the real fix.
+
+Pushing to `main` deploys automatically through Vercel's Git integration.
+
+## CI
+
+Each repository runs GitHub Actions on every push and pull request:
+
+| Repository | Jobs |
+|---|---|
+| No-Boring-Backend | **Test**: `mvn verify` on JDK 27. **Image**: build, boot the container until it is healthy, check the API and that it runs as non-root, then push to GHCR from `main` |
+| No-Boring-Frontend | **Test**: unit tests and a production build on Node from `.node-version`. **Image**: build, smoke-test nginx (app shell, SPA fallback, security headers), then push to GHCR from `main` |
+| No-Boring-Java-Angular | **Compose stack**: builds the pinned submodules, starts the stack and tests it end to end through nginx (health, API, an unbuffered SSE stream, a validated submission). **Terraform**: `fmt`, `init`, `validate` |
+
+Dependabot keeps actions, base images, Maven and npm dependencies current, and opens pull requests here
+whenever a submodule moves.
+
+## Infrastructure as code
+
+`infra/terraform` describes the platform this project runs on: the three GitHub repositories (settings,
+topics, vulnerability alerts, and branch protection that requires signed commits, linear history and green CI)
+and the Vercel project. Everything already existed, so import blocks adopt it on the first apply.
+
+```sh
+cd infra/terraform
+export GITHUB_TOKEN=$(gh auth token) VERCEL_API_TOKEN=<token from vercel.com/account/tokens>
+terraform init
+terraform plan     # 4 to import, 6 to add, 3 to change, 0 to destroy
+terraform apply
+```
+
+State is local and git-ignored. For a team, add a remote backend (an HCP Terraform workspace or an S3
+bucket) to `versions.tf` before the first apply.
 
 ## Ideas to make it even less boring
 

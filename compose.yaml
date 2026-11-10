@@ -1,0 +1,30 @@
+# The whole room on one machine: `docker compose up --build --wait`, then open http://localhost:8080.
+# Only nginx is published; the backend is reachable through it, just like on Vercel.
+name: opposite-of-boring
+
+services:
+  backend:
+    build: ./backend
+    image: ghcr.io/soulwax/no-boring-backend:${TAG:-local}
+    environment:
+      CHAOS_SEED_DEMO_DATA: "true"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    image: ghcr.io/soulwax/no-boring-frontend:${TAG:-local}
+    environment:
+      BACKEND_URL: http://backend:8080
+    ports:
+      - "${PORT:-8080}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped

@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stack:
+    name: Compose stack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: docker/setup-buildx-action@v4
+      - name: Start the stack
+        run: docker compose up --build --detach --wait --wait-timeout 300
+      - name: End-to-end checks through nginx
+        run: |
+          base=http://localhost:8080
+          curl -fsS "$base/" | grep -q '<title>Opposite of Boring</title>'
+          curl -fsS "$base/actuator/health" | grep -q '"status":"UP"'
+          [ "$(curl -fsS "$base/api/things" | grep -o '"twist"' | wc -l)" -ge 1 ]
+          # SSE must stream through the proxy unbuffered: the first events arrive within seconds
+          curl -sN --max-time 5 "$base/api/stream" > stream.txt || true
+          grep -q '^event:board' stream.txt
+          grep -q '^event:meter' stream.txt
+          # A submission round trip, validated by the backend
+          curl -fsS -X POST "$base/api/things" -H 'Content-Type: application/json' \
+            -d '{"original":"waiting for the kettle to boil","genre":"NOIR"}' | grep -q 'It was raining again.'
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Stop the stack
+        if: always()
+        run: docker compose down --volumes
+
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/terraform
+    steps:
+      - uses: actions/checkout@v7
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.17.1
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false -input=false
+      - run: terraform validate
