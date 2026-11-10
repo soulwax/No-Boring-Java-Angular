@@ -27,3 +27,7 @@ llms-full.txt
 *.tfplan
 crash.log
 *.auto.tfvars
+
+.env
+.env.*
+!.env.example

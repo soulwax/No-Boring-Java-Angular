@@ -8,6 +8,12 @@ services:
     image: ghcr.io/soulwax/no-boring-backend:${TAG:-local}
     environment:
       CHAOS_SEED_DEMO_DATA: "true"
+      # Taken from the shell or the project's .env; empty means in-memory H2 and no sign-in
+      DATABASE_URL: ${DATABASE_URL:-}
+      DATABASE_URL_UNPOOLED: ${DATABASE_URL_UNPOOLED:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL:-}
     read_only: true
     tmpfs:
       - /tmp
