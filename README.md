@@ -103,6 +103,8 @@ cd frontend && npx ng test --watch=false      # signal store, gauge component, a
 | FLIP reorder animation with `afterRenderEffect` | `shared/flip.ts` |
 | `effect()` with `onCleanup`: a countdown that only ticks while a mutator runs | `shared/mutator-banner.ts` |
 | Tier styling straight from data attributes, incl. an animated `@property` conic border | `board/thing-card.scss` |
+| OKLCH design tokens, light/dark themes applied before first paint and swapped with a View Transition | `styles.scss`, `core/color-scheme.ts` |
+| Dependency-free SVG icon set and a pure `ago` pipe fed by a ticking signal | `shared/icon.ts`, `shared/ago.ts` |
 
 ## API
 
