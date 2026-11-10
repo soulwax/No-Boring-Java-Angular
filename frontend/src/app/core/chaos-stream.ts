@@ -1,19 +1,28 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { ChaosMeter, Thing } from './models';
+import { Subject } from 'rxjs';
+import { AchievementUnlocked, ChaosMeter, ChaosWave, Thing } from './models';
 
 /**
  * Signal store fed by the backend's Server-Sent Events stream (/api/stream).
  * EventSource reconnects on its own; the server re-sends a full snapshot on every connect.
+ *
+ * State (board, meter, presence) lives in signals. One-off happenings (achievements,
+ * waves) are Observables instead: a signal would swallow two identical events in a row.
  */
 @Injectable({ providedIn: 'root' })
 export class ChaosStream {
   private readonly things = signal<Thing[]>([]);
+  private readonly achievementSubject = new Subject<AchievementUnlocked>();
+  private readonly waveSubject = new Subject<ChaosWave>();
 
   readonly meter = signal<ChaosMeter | null>(null);
   readonly online = signal(0);
   readonly connected = signal(false);
   /** Id of the most recently changed thing, used to flash its card. */
   readonly lastChanged = signal<number | null>(null);
+
+  readonly achievements$ = this.achievementSubject.asObservable();
+  readonly waves$ = this.waveSubject.asObservable();
 
   readonly ranked = computed(() =>
     [...this.things()].sort(
@@ -32,6 +41,8 @@ export class ChaosStream {
     on<Thing>(source, 'thing', (thing) => this.upsert(thing));
     on<ChaosMeter>(source, 'meter', (meter) => this.meter.set(meter));
     on<{ online: number }>(source, 'presence', ({ online }) => this.online.set(online));
+    on<AchievementUnlocked>(source, 'achievement', (a) => this.achievementSubject.next(a));
+    on<ChaosWave>(source, 'wave', (w) => this.waveSubject.next(w));
 
     return () => {
       source.close();

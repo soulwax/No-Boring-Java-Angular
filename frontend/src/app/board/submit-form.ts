@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, effect, inject, signal } from '@angular/core';
 import { ChaosApi } from '../core/chaos-api';
 import { Problem } from '../core/models';
+import { PlayerIdentity } from '../core/player';
 
 const SUGGESTIONS = [
   'reading the terms and conditions',
@@ -12,8 +13,6 @@ const SUGGESTIONS = [
   'updating my printer drivers',
   'standing in line at the post office',
 ];
-
-const AUTHOR_KEY = 'oob.author';
 
 @Component({
   selector: 'app-submit-form',
@@ -28,7 +27,7 @@ const AUTHOR_KEY = 'oob.author';
       </div>
       <div class="row">
         <input aria-label="Your name" maxlength="40" placeholder="Your name (optional)"
-          [value]="author()" (input)="author.set(value($event))" />
+          [value]="player.name()" (input)="player.name.set(value($event))" />
         <button type="submit" [disabled]="busy() || !original().trim()">
           {{ busy() ? 'Twisting…' : 'Annihilate boredom 💥' }}
         </button>
@@ -42,15 +41,14 @@ const AUTHOR_KEY = 'oob.author';
 })
 export class SubmitForm {
   private readonly api = inject(ChaosApi);
+  protected readonly player = inject(PlayerIdentity);
 
   protected readonly original = signal('');
-  protected readonly author = signal(readAuthor());
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly placeholder = pick(SUGGESTIONS);
 
   constructor() {
-    effect(() => saveAuthor(this.author()));
     // Clear a stale error as soon as the user edits their submission
     effect(() => {
       this.original();
@@ -65,7 +63,7 @@ export class SubmitForm {
   protected submit(event: Event): void {
     event.preventDefault();
     this.busy.set(true);
-    this.api.submit(this.original(), this.author()).subscribe({
+    this.api.submit(this.original(), this.player.name()).subscribe({
       next: () => {
         this.original.set('');
         this.busy.set(false);
@@ -87,20 +85,4 @@ export class SubmitForm {
 
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
-}
-
-function readAuthor(): string {
-  try {
-    return localStorage.getItem(AUTHOR_KEY) ?? '';
-  } catch {
-    return '';
-  }
-}
-
-function saveAuthor(author: string): void {
-  try {
-    localStorage.setItem(AUTHOR_KEY, author);
-  } catch {
-    // storage unavailable (private mode etc.) – not worth bothering anyone about
-  }
 }

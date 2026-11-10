@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { ChaosApi } from '../core/chaos-api';
 import { ChaosStream } from '../core/chaos-stream';
 import { ChaosMeterGauge } from './chaos-meter';
@@ -17,10 +17,6 @@ export class Board {
   private readonly api = inject(ChaosApi);
 
   protected readonly mayhem = computed(() => (this.stream.meter()?.level ?? 0) >= 70);
-
-  constructor() {
-    inject(DestroyRef).onDestroy(this.stream.connect());
-  }
 
   protected hype(id: number): void {
     this.api.hype(id).subscribe();
