@@ -89,15 +89,16 @@ cd frontend && npx ng test --watch=false      # signal store, gauge component, a
 | Domain events published in a transaction, broadcast **after commit** via `@TransactionalEventListener` | `board/ChaosService.java`, `live/ChaosEvent.java` |
 | `@Scheduled` entropy job using a `@Modifying` JPQL bulk update with `CASE` | `board/ChaosService#decay`, `board/BoringThingRepository.java` |
 | Custom Bean Validation constraint (`@ActuallyBoring` rejects fun things) | `web/ActuallyBoring.java`, `web/ActuallyBoringValidator.java` |
-| RFC 9457 `ProblemDetail` errors with per-field messages | `web/ApiExceptionHandler.java` |
+| RFC 9457 `ProblemDetail` errors with per-field messages from a `MessageSource` (German default, English) | `web/ApiExceptionHandler.java`, `resources/messages*.properties` |
 | Records as DTOs, entity kept internal | `board/ThingView.java`, `web/SubmitRequest.java` |
 | Testable randomness (injected `RandomGenerator` supplier) | `twist/TwistEngine.java` |
 | Conditional demo data seeding | `board/DemoSeeder.java` |
-| Custom `HandlerMethodArgumentResolver`: controllers just declare a `Player` | `web/PlayerArgumentResolver.java` |
+| Custom `HandlerMethodArgumentResolver`s: controllers just declare a `Player` and a `Lang` | `web/PlayerArgumentResolver.java`, `web/LangArgumentResolver.java` |
 | A module that only listens: achievements react to board events via `@EventListener` | `achievements/AchievementTracker.java` |
 | Injectable `Clock` so the 3 a.m. trophy is testable at noon | `achievements/AchievementTrackerTest.java` |
-| Rich enums as a domain language (genres carry vocabulary, tiers carry thresholds and lore) | `twist/Genre.java`, `board/Tier.java` |
-| JPA `AttributeConverter`: a `List<String>` of lore in one column | `board/LinesConverter.java` |
+| Rich enums as a domain language (genres carry vocabulary, tiers carry thresholds and lore, all in German and English) | `twist/Genre.java`, `board/Tier.java` |
+| Language-neutral content: twists and lore are stored as positions in word lists and rendered per SSE client | `i18n/Localized.java`, `twist/Twist.java`, `board/Lore.java` |
+| JPA `AttributeConverter`: a `List<String>` of lore keys in one column; an `@Embeddable` record for the twist | `board/LinesConverter.java`, `twist/Twist.java` |
 | Lock-free timed state: `AtomicReference` + two `@Scheduled` jobs | `mutator/MutatorDirector.java` |
 | A read model built from domain events, with a ring buffer for late joiners | `live/Chronicle.java` |
 
@@ -113,7 +114,8 @@ cd frontend && npx ng test --watch=false      # signal store, gauge component, a
 | Built-in control flow (`@for … track … @empty`, `@if … as`) | `board/board.html` |
 | `httpResource` + lazy-loaded route | `how-it-works/how-it-works.ts`, `app.routes.ts` |
 | Dev proxy instead of CORS | `proxy.conf.json` |
-| Functional HTTP interceptor adding player headers | `core/player.ts` |
+| Functional HTTP interceptors adding player headers and `Accept-Language` | `core/player.ts`, `core/i18n.ts` |
+| Runtime i18n with signals: a typed DE/EN dictionary, a DE/EN slider kept in `sessionStorage`, translated route titles | `core/i18n.ts`, `core/messages.ts`, `shared/lang-switch.ts` |
 | Signals for state, RxJS Subjects for one-off events (toasts, waves) | `core/chaos-stream.ts`, `shared/` |
 | Web Crypto SHA-256 to recognize your own broadcasts without leaking ids | `core/player.ts#tagFor` |
 | FLIP reorder animation with `afterRenderEffect` | `shared/flip.ts` |
@@ -132,10 +134,15 @@ cd frontend && npx ng test --watch=false      # signal store, gauge component, a
 | `POST` | `/api/things/{id}/reroll` | New twist, same boring thing |
 | `GET`  | `/api/meter` | `{ level, mood, totalHype, things }` |
 | `GET`  | `/api/achievements` | Your trophies (needs `X-Chaos-Player`) |
-| `GET`  | `/api/stream` | SSE: `board`, `thing`, `meter`, `presence`, `mutator`, `chronicle`, `activity`, `achievement`, `wave` |
+| `GET`  | `/api/stream` | SSE: `board`, `thing`, `meter`, `presence`, `mutator`, `chronicle`, `activity`, `achievement`, `wave`; `?lang=en` for English |
 
 Optional headers on every call: `X-Chaos-Player` (random id, 8–64 of `[A-Za-z0-9-]`) and
 `X-Chaos-Name` (URL-encoded display name). Without them you can play but earn no trophies.
+
+Everything is German unless you ask for English: `Accept-Language: en` or `?lang=en` (the query
+parameter wins, since `EventSource` can't set headers; any other language falls back to German).
+Twists, lore, moods, mutators, trophies, the chronicle and error messages all follow it; what
+players type in stays as typed. In the UI, the DE/EN slider in the top bar switches the tab.
 
 ## Deploy
 
