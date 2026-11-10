@@ -34,6 +34,9 @@ whole room as a toast; your shelf lives on the Trophies page.
 
 ## Run it
 
+`backend/` and `frontend/` are submodules ([No-Boring-Backend](https://github.com/soulwax/No-Boring-Backend), [No-Boring-Frontend](https://github.com/soulwax/No-Boring-Frontend)), so clone with
+`git clone --recurse-submodules git@github.com:soulwax/No-Boring-Java-Angular.git`, or run `git submodule update --init` in an existing clone.
+
 Prerequisites (via scoop + fnm): `scoop install maven oraclejdk fnm`, then `fnm install 26.12.1`.
 
 ```sh
