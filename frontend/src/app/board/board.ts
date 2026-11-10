@@ -1,13 +1,15 @@
 import { Component, computed, inject } from '@angular/core';
 import { ChaosApi } from '../core/chaos-api';
 import { ChaosStream } from '../core/chaos-stream';
+import { Flip } from '../shared/flip';
 import { ChaosMeterGauge } from './chaos-meter';
+import { ChronicleFeed } from './chronicle-feed';
 import { SubmitForm } from './submit-form';
 import { ThingCard } from './thing-card';
 
 @Component({
   selector: 'app-board',
-  imports: [ChaosMeterGauge, SubmitForm, ThingCard],
+  imports: [ChaosMeterGauge, ChronicleFeed, Flip, SubmitForm, ThingCard],
   host: { '[class.mayhem]': 'mayhem()' },
   templateUrl: './board.html',
   styleUrl: './board.scss',

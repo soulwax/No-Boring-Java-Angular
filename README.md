@@ -13,6 +13,19 @@ tracks the room's total energy. Push it past 70 and the meter starts to wobble. 
 Along the way you earn **trophies** (Shameless, Insomniac, Wave Rider, …). Every unlock is announced to the
 whole room as a toast; your shelf lives on the Trophies page.
 
+### The rules of the room
+
+- **Genres.** Every twist has a flavor: 🎪 Classic, 🕵️ Noir, 🚀 Space Opera, 🦁 Nature Doc, 🏰 Medieval or
+  💎 Heist. Pick one or let the dice decide. Re-rolls stay in genre.
+- **Evolution.** Hype pushes a thing up the ladder: 😐 Boring → 🤨 Curious (6) → 🌶️ Spicy (15) →
+  👑 Legendary (30) → 🐉 Mythic (50). Each tier reached for the first time writes a line of **lore** into
+  its story (*"The Moon files a noise complaint."*). Hype decays; peak tier and lore never do.
+- **Mutators.** Every 90 s, and instantly after a Chaos Wave, the room's rules bend for 45 s:
+  ⚡ Double Hype, 🧊 Frozen Time (no decay), 🎬 Genre Lock (every new twist is forced into one genre) or
+  🌀 Twist Tornado (every hype re-rolls the twist).
+- **The Chronicle.** A live feed of the room's story: submissions, evolutions, waves, mutators. Late
+  joiners get the last 20 entries.
+
 | Layer    | Stack                                                       |
 |----------|-------------------------------------------------------------|
 | Backend  | Spring Boot 4.1 · Java 27 · Spring MVC · Data JPA · H2 · Actuator |
@@ -64,6 +77,10 @@ cd frontend && npx ng test --watch=false      # signal store, gauge component, a
 | Custom `HandlerMethodArgumentResolver`: controllers just declare a `Player` | `web/PlayerArgumentResolver.java` |
 | A module that only listens: achievements react to board events via `@EventListener` | `achievements/AchievementTracker.java` |
 | Injectable `Clock` so the 3 a.m. trophy is testable at noon | `achievements/AchievementTrackerTest.java` |
+| Rich enums as a domain language (genres carry vocabulary, tiers carry thresholds and lore) | `twist/Genre.java`, `board/Tier.java` |
+| JPA `AttributeConverter`: a `List<String>` of lore in one column | `board/LinesConverter.java` |
+| Lock-free timed state: `AtomicReference` + two `@Scheduled` jobs | `mutator/MutatorDirector.java` |
+| A read model built from domain events, with a ring buffer for late joiners | `live/Chronicle.java` |
 
 ### Angular (`frontend/src/app`)
 
@@ -80,21 +97,37 @@ cd frontend && npx ng test --watch=false      # signal store, gauge component, a
 | Functional HTTP interceptor adding player headers | `core/player.ts` |
 | Signals for state, RxJS Subjects for one-off events (toasts, waves) | `core/chaos-stream.ts`, `shared/` |
 | Web Crypto SHA-256 to recognize your own broadcasts without leaking ids | `core/player.ts#tagFor` |
+| FLIP reorder animation with `afterRenderEffect` | `shared/flip.ts` |
+| `effect()` with `onCleanup`: a countdown that only ticks while a mutator runs | `shared/mutator-banner.ts` |
+| Tier styling straight from data attributes, incl. an animated `@property` conic border | `board/thing-card.scss` |
 
 ## API
 
 | Method | Path | Notes |
 |---|---|---|
 | `GET`  | `/api/things` | Top 50 by hype |
-| `POST` | `/api/things` | `{ "original": "…", "author": "…" }` → `201` + `Location` |
-| `POST` | `/api/things/{id}/hype` | +3 hype |
+| `POST` | `/api/things` | `{ "original": "…", "author": "…", "genre": "NOIR" }` → `201` + `Location` (genre optional) |
+| `POST` | `/api/things/{id}/hype` | +3 hype (×2 during Double Hype); may evolve the thing |
 | `POST` | `/api/things/{id}/reroll` | New twist, same boring thing |
 | `GET`  | `/api/meter` | `{ level, mood, totalHype, things }` |
 | `GET`  | `/api/achievements` | Your trophies (needs `X-Chaos-Player`) |
-| `GET`  | `/api/stream` | SSE: `board`, `thing`, `meter`, `presence`, `achievement`, `wave` events |
+| `GET`  | `/api/stream` | SSE: `board`, `thing`, `meter`, `presence`, `mutator`, `chronicle`, `activity`, `achievement`, `wave` |
 
 Optional headers on every call: `X-Chaos-Player` (random id, 8–64 of `[A-Za-z0-9-]`) and
 `X-Chaos-Name` (URL-encoded display name). Without them you can play but earn no trophies.
+
+## Deploy
+
+`vercel.json` defines two [Vercel Services](https://vercel.com/docs/services): the Angular build as a static
+service and the Spring Boot app as a container built from `backend/Dockerfile.vercel`. `/api/*` and
+`/actuator/*` go to the backend, everything else to the frontend.
+
+```sh
+vercel deploy --prod
+```
+
+Containers scale to zero and may run as several instances, so the in-memory H2 data, trophies and the
+SSE room reset on cold starts. Good enough for a demo; see the ideas below for the real fix.
 
 ## Ideas to make it even less boring
 

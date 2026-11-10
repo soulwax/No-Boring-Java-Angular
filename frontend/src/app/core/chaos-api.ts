@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { tap } from 'rxjs';
 import { ChaosStream } from './chaos-stream';
-import { Thing } from './models';
+import { Genre, Thing } from './models';
 
 /**
  * REST mutations. Every response is also folded into the live store right away,
@@ -13,9 +13,10 @@ export class ChaosApi {
   private readonly http = inject(HttpClient);
   private readonly stream = inject(ChaosStream);
 
-  submit(original: string, author: string) {
+  /** `genre: null` asks the server for a surprise */
+  submit(original: string, author: string, genre: Genre | null) {
     return this.http
-      .post<Thing>('/api/things', { original, author })
+      .post<Thing>('/api/things', { original, author, genre })
       .pipe(tap((thing) => this.stream.upsert(thing)));
   }
 

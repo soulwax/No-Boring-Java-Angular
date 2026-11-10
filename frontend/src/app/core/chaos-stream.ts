@@ -1,13 +1,22 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { Subject } from 'rxjs';
-import { AchievementUnlocked, ChaosMeter, ChaosWave, Thing } from './models';
+import {
+  AchievementUnlocked,
+  ChaosMeter,
+  ChaosWave,
+  ChronicleEntry,
+  MutatorState,
+  Thing,
+} from './models';
+
+const CHRONICLE_SIZE = 12;
 
 /**
  * Signal store fed by the backend's Server-Sent Events stream (/api/stream).
  * EventSource reconnects on its own; the server re-sends a full snapshot on every connect.
  *
- * State (board, meter, presence) lives in signals. One-off happenings (achievements,
- * waves) are Observables instead: a signal would swallow two identical events in a row.
+ * State (board, meter, presence, mutator, chronicle) lives in signals. One-off happenings
+ * (achievements, waves) are Observables instead: a signal would swallow two identical events in a row.
  */
 @Injectable({ providedIn: 'root' })
 export class ChaosStream {
@@ -18,6 +27,9 @@ export class ChaosStream {
   readonly meter = signal<ChaosMeter | null>(null);
   readonly online = signal(0);
   readonly connected = signal(false);
+  readonly mutator = signal<MutatorState | null>(null);
+  /** Newest first */
+  readonly chronicle = signal<ChronicleEntry[]>([]);
   /** Id of the most recently changed thing, used to flash its card. */
   readonly lastChanged = signal<number | null>(null);
 
@@ -30,6 +42,10 @@ export class ChaosStream {
     ),
   );
   readonly maxHype = computed(() => Math.max(1, ...this.things().map((t) => t.hype)));
+  readonly activeMutator = computed(() => {
+    const m = this.mutator();
+    return m?.active ? m : null;
+  });
 
   /** Opens the stream and returns a function that closes it. */
   connect(url = '/api/stream'): () => void {
@@ -41,6 +57,11 @@ export class ChaosStream {
     on<Thing>(source, 'thing', (thing) => this.upsert(thing));
     on<ChaosMeter>(source, 'meter', (meter) => this.meter.set(meter));
     on<{ online: number }>(source, 'presence', ({ online }) => this.online.set(online));
+    on<MutatorState>(source, 'mutator', (m) => this.mutator.set(m));
+    on<ChronicleEntry[]>(source, 'chronicle', (entries) =>
+      this.chronicle.set(entries.slice(0, CHRONICLE_SIZE)),
+    );
+    on<ChronicleEntry>(source, 'activity', (entry) => this.record(entry));
     on<AchievementUnlocked>(source, 'achievement', (a) => this.achievementSubject.next(a));
     on<ChaosWave>(source, 'wave', (w) => this.waveSubject.next(w));
 
@@ -61,6 +82,10 @@ export class ChaosStream {
       return copy;
     });
     this.lastChanged.set(thing.id);
+  }
+
+  record(entry: ChronicleEntry): void {
+    this.chronicle.update((list) => [entry, ...list].slice(0, CHRONICLE_SIZE));
   }
 }
 

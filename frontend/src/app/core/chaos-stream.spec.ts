@@ -9,7 +9,12 @@ const thing = (id: number, hype: number, createdAt = '2026-01-01T00:00:00Z'): Th
   original: 'x',
   twist: 'X on the Moon',
   author: 'test',
+  genre: 'CLASSIC',
   rerolls: 0,
+  tier: 'BORING',
+  peakTier: 'BORING',
+  nextTierAt: 6,
+  lore: [],
 });
 
 describe('ChaosStream', () => {
@@ -35,5 +40,13 @@ describe('ChaosStream', () => {
     expect(stream.ranked()).toHaveLength(1);
     expect(stream.ranked()[0].hype).toBe(6);
     expect(stream.lastChanged()).toBe(1);
+  });
+
+  it('keeps the chronicle newest-first and bounded', () => {
+    for (let i = 0; i < 15; i++) {
+      stream.record({ emoji: '✍️', text: `entry ${i}`, at: new Date(i * 1000).toISOString() });
+    }
+    expect(stream.chronicle()).toHaveLength(12);
+    expect(stream.chronicle()[0].text).toBe('entry 14');
   });
 });

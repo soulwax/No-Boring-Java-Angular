@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Subject } from 'rxjs';
@@ -13,7 +14,15 @@ describe('App', () => {
       providers: [
         provideRouter([]),
         // jsdom has no EventSource; the real stream is covered in chaos-stream.spec.ts
-        { provide: ChaosStream, useValue: { connect, achievements$: new Subject(), waves$: new Subject() } },
+        {
+          provide: ChaosStream,
+          useValue: {
+            connect,
+            achievements$: new Subject(),
+            waves$: new Subject(),
+            activeMutator: signal(null),
+          },
+        },
       ],
     }).compileComponents();
   });

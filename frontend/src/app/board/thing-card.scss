@@ -20,6 +20,83 @@
   animation: flash 900ms ease-out;
 }
 
+// Evolution: the card itself shows how far a thing has climbed
+:host([data-tier='CURIOUS']) { border-color: var(--cool); }
+
+:host([data-tier='SPICY']) {
+  border-color: var(--hot);
+  box-shadow: 6px 6px 0 var(--hot);
+}
+
+:host([data-tier='LEGENDARY']) {
+  border-color: var(--gold);
+  box-shadow: 6px 6px 0 var(--gold), 0 0 24px color-mix(in srgb, var(--gold) 45%, transparent);
+}
+
+:host([data-tier='MYTHIC']) {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    conic-gradient(from var(--spin, 0deg), var(--cool), var(--hot), var(--nuclear), var(--gold), var(--cool)) border-box;
+  box-shadow: 6px 6px 0 var(--nuclear), 0 0 32px color-mix(in srgb, var(--hot) 50%, transparent);
+  animation: mythic-spin 4s linear infinite;
+}
+
+@property --spin {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes mythic-spin {
+  to { --spin: 360deg; }
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 99px;
+  background: var(--surface-2);
+}
+
+:host([data-tier='SPICY']) .tier { background: var(--hot); color: #fff; }
+:host([data-tier='LEGENDARY']) .tier { background: var(--gold); color: #2a1d00; }
+:host([data-tier='MYTHIC']) .tier {
+  background: linear-gradient(90deg, var(--cool), var(--hot), var(--nuclear));
+  color: #fff;
+}
+
+.lore {
+  margin: 0.2rem 0 0.5rem;
+  padding: 0 0 0 0.9rem;
+  border-left: 3px solid var(--hot);
+  font-size: 0.85rem;
+  font-style: italic;
+
+  li {
+    list-style: none;
+    animation: lore-in 600ms cubic-bezier(.34, 1.56, .64, 1);
+  }
+}
+
+.next {
+  white-space: nowrap;
+}
+
+@keyframes lore-in {
+  from { transform: translateX(-0.75rem); opacity: 0; }
+}
+
 .rank {
   font: 800 1.6rem/1 var(--display);
   text-align: center;

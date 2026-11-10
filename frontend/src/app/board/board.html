@@ -1,9 +1,9 @@
-<section class="hero">
-  <div class="panel form-panel">
-    <app-submit-form />
-  </div>
+<div class="panel form-panel">
+  <app-submit-form />
+</div>
 
-  <aside class="panel meter-panel">
+<aside class="side">
+  <div class="panel meter-panel">
     @if (stream.meter(); as meter) {
       <app-chaos-meter [level]="meter.level" [mood]="meter.mood" />
       <p class="stats">{{ meter.totalHype }} hype across {{ meter.things }} un-bored things</p>
@@ -18,23 +18,32 @@
         Reconnecting to the mayhem…
       }
     </p>
-  </aside>
-</section>
+  </div>
+
+  <div class="panel chronicle-panel">
+    <app-chronicle-feed />
+  </div>
+</aside>
 
 <section class="board" aria-live="polite">
   <h2>The Leaderboard of No Longer Boring</h2>
-  <p class="hint">Hype fades over time. Keep the energy up or watch things sink. 🎲 re-rolls the twist.</p>
+  <p class="hint">
+    Hype makes things evolve: 🤨 Curious → 🌶️ Spicy → 👑 Legendary → 🐉 Mythic. Hype fades, legends don't.
+  </p>
 
-  @for (thing of stream.ranked(); track thing.id; let i = $index) {
-    <app-thing-card
-      [thing]="thing"
-      [rank]="i"
-      [maxHype]="stream.maxHype()"
-      [fresh]="stream.lastChanged() === thing.id"
-      (hype)="hype($event)"
-      (reroll)="reroll($event)"
-    />
-  } @empty {
-    <p class="empty">Nothing here yet. That's… the most boring thing we've ever seen. Fix it ↑</p>
-  }
+  <div class="cards" [appFlip]="stream.ranked()">
+    @for (thing of stream.ranked(); track thing.id; let i = $index) {
+      <app-thing-card
+        [attr.data-flip-id]="thing.id"
+        [thing]="thing"
+        [rank]="i"
+        [maxHype]="stream.maxHype()"
+        [fresh]="stream.lastChanged() === thing.id"
+        (hype)="hype($event)"
+        (reroll)="reroll($event)"
+      />
+    } @empty {
+      <p class="empty">Nothing here yet. That's… the most boring thing we've ever seen. Fix it ↑</p>
+    }
+  </div>
 </section>

@@ -1,24 +1,43 @@
 import { Component, computed, input, output, signal } from '@angular/core';
+import { GENRES, nextTier, tierRank, TIERS } from '../core/catalog';
 import { Thing } from '../core/models';
 
 const BURST = ['🔥', '⚡', '🎉', '💥', '✨', '🚀', '🌶️', '🦄'];
 
 @Component({
   selector: 'app-thing-card',
-  host: { '[class.fresh]': 'fresh()', '[style.--hype-pct.%]': 'hypePct()' },
+  host: {
+    '[class.fresh]': 'fresh()',
+    '[attr.data-tier]': 'thing().peakTier',
+    '[style.--hype-pct.%]': 'hypePct()',
+  },
   template: `
     <div class="rank">{{ medal() }}</div>
     <div class="body">
+      <div class="tags">
+        <span class="tag genre">{{ genre().emoji }} {{ genre().label }}</span>
+        <span class="tag tier" [title]="'Peak: ' + peak().label">{{ peak().emoji }} {{ peak().label }}</span>
+      </div>
       <p class="original">“{{ thing().original }}” <span>was boring.</span></p>
       @if (thing().rerolls > 0) {
         <p class="twist" [attr.data-reroll]="thing().rerolls">{{ thing().twist }}</p>
       } @else {
         <p class="twist">{{ thing().twist }}</p>
       }
+      @if (thing().lore.length) {
+        <ul class="lore" aria-label="Lore">
+          @for (line of thing().lore; track $index) {
+            <li>{{ line }}</li>
+          }
+        </ul>
+      }
       <p class="meta">
         by {{ thing().author }}
         @if (thing().rerolls > 0) {
           · re-twisted {{ thing().rerolls }}×
+        }
+        @if (toNext(); as next) {
+          · <span class="next">{{ next.missing }} hype to {{ next.reclaim ? 'reclaim ' : '' }}{{ next.emoji }} {{ next.label }}</span>
         }
       </p>
       <div class="hype-bar"><span></span></div>
@@ -47,6 +66,20 @@ export class ThingCard {
   protected readonly bursts = signal<{ id: number; emoji: string; dx: number; dy: number }[]>([]);
   protected readonly medal = computed(() => ['🥇', '🥈', '🥉'][this.rank()] ?? `#${this.rank() + 1}`);
   protected readonly hypePct = computed(() => (100 * this.thing().hype) / this.maxHype());
+  protected readonly genre = computed(() => GENRES[this.thing().genre]);
+  protected readonly peak = computed(() => TIERS[this.thing().peakTier]);
+  /**
+   * Distance to the next tier above the current one (as long as one exists). After decay
+   * that tier may already be in the thing's past, in which case it is a reclaim, not a first.
+   */
+  protected readonly toNext = computed(() => {
+    const { tier, peakTier, hype, nextTierAt } = this.thing();
+    const next = nextTier(tier);
+    if (!next || nextTierAt === null) {
+      return null;
+    }
+    return { ...TIERS[next], missing: nextTierAt - hype, reclaim: tierRank(next) <= tierRank(peakTier) };
+  });
 
   private burstId = 0;
 

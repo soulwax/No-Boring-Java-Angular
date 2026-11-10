@@ -1,11 +1,25 @@
+/** Mirrors dev.oob.chaos.twist.Genre */
+export type Genre = 'CLASSIC' | 'NOIR' | 'SPACE_OPERA' | 'NATURE_DOC' | 'MEDIEVAL' | 'HEIST';
+
+/** Mirrors dev.oob.chaos.board.Tier */
+export type Tier = 'BORING' | 'CURIOUS' | 'SPICY' | 'LEGENDARY' | 'MYTHIC';
+
 /** Mirrors dev.oob.chaos.board.ThingView */
 export interface Thing {
   id: number;
   original: string;
   twist: string;
   author: string;
+  genre: Genre;
   hype: number;
   rerolls: number;
+  /** Tier the current hype qualifies for; drops as hype decays */
+  tier: Tier;
+  /** Highest tier ever reached; never drops */
+  peakTier: Tier;
+  /** Hype needed for the next tier, null at the top */
+  nextTierAt: number | null;
+  lore: string[];
   createdAt: string;
 }
 
@@ -15,6 +29,24 @@ export interface ChaosMeter {
   mood: string;
   totalHype: number;
   things: number;
+}
+
+/** Mirrors dev.oob.chaos.mutator.MutatorState (SSE "mutator" event) */
+export interface MutatorState {
+  active: boolean;
+  code: 'DOUBLE_HYPE' | 'FROZEN_TIME' | 'GENRE_LOCK' | 'TWIST_TORNADO' | null;
+  emoji: string | null;
+  title: string | null;
+  description: string | null;
+  genre: Genre | null;
+  endsAt: string | null;
+}
+
+/** Mirrors dev.oob.chaos.live.Chronicle.Entry (SSE "activity" / "chronicle") */
+export interface ChronicleEntry {
+  emoji: string;
+  text: string;
+  at: string;
 }
 
 /** Mirrors dev.oob.chaos.achievements.AchievementView */

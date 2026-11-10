@@ -53,6 +53,44 @@ button {
   }
 }
 
+.genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  legend {
+    padding: 0;
+    margin-bottom: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0.75;
+  }
+
+  &:disabled .chip:not(.on) { opacity: 0.35; }
+}
+
+.chip {
+  padding: 0.35rem 0.75rem;
+  border-radius: 99px;
+  border: 2px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink);
+  font: 600 0.85rem var(--body);
+  box-shadow: none;
+
+  &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: none; }
+  &:active:not(:disabled) { transform: scale(0.95); box-shadow: none; }
+
+  &.on {
+    background: var(--hot);
+    border-color: var(--hot);
+    color: #fff;
+  }
+}
+
 .error {
   margin: 0;
   padding: 0.6rem 0.9rem;
