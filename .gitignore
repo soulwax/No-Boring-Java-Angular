@@ -1,4 +1,5 @@
 .vercel
+.wrangler/
 
 ### AI assistant files stay out of this repo ###
 CLAUDE.md

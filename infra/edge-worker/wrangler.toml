@@ -1,0 +1,12 @@
+name = "oob-edge-worker"
+main = "src/index.ts"
+compatibility_date = "2026-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+[ai]
+binding = "AI"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "general-purpose"
+preview_bucket_name = "general-purpose"
